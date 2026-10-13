@@ -1,0 +1,11 @@
+node_modules/
+dist/
+bin/windows/
+*.bak
+*.swp
+.*.swp
+electron
+jc-sattube@*
+*.backup*
+*.player-bak
+*.bak-*

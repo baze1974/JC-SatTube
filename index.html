@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JC-SATube Rubro-Negro</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101010;color:#fff;font-family:Arial,sans-serif}
+header{height:76px;display:flex;align-items:center;gap:14px;padding:0 25px;background:#080808;border-bottom:3px solid #d40000}
+.logo{background:#d40000;font-weight:900;padding:10px 12px;border-radius:8px;font-size:20px}
+h1{font-size:22px;margin:0}h1 span{color:#e00000}
+main{padding:25px;max-width:1400px;margin:auto}
+h2{font-size:26px;margin-bottom:8px}
+p{color:#bbb;line-height:1.5}
+.search{display:flex;gap:10px;margin:24px 0}
+input{flex:1;min-width:0;padding:15px;border-radius:8px;border:1px solid #444;background:#202020;color:white;font-size:16px}
+button{background:#d40000;color:white;border:0;border-radius:8px;padding:13px 20px;font-weight:bold;cursor:pointer}
+button:hover{background:#f02020}
+#status{color:#ff7777;min-height:24px}
+#results{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px;margin-top:20px}
+.favorites-panel{background:#171010;border:1px solid #5a1717;border-top:3px solid #d40000;border-radius:12px;padding:18px;margin:22px 0}
+.favorites-panel h2{font-size:22px;margin-top:0}
+.favorites-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.favorite-button{width:100%;margin-top:8px;background:#302020;border:1px solid #a52a2a}
+.favorite-button.saved{background:#5b1515}
+.favorite-empty{color:#aaa;font-size:14px}
+.favorite-category{width:100%;margin:8px 0;padding:9px;background:#101010;color:#fff;border:1px solid #6b2929;border-radius:6px}
+.favorites-filter{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 16px;color:#ddd}
+.favorites-filter select{background:#101010;color:#fff;border:1px solid #a52a2a;border-radius:6px;padding:8px}
+
+.video{background:#1b1b1b;border:1px solid #303030;border-radius:10px;overflow:hidden}
+.thumb{width:100%;aspect-ratio:16/9;object-fit:cover;background:#292929;display:block}
+.details{padding:13px}
+.video h3{font-size:16px;line-height:1.4;margin:0 0 8px}
+.channel{color:#aaa;font-size:13px;margin-bottom:12px}
+.play{width:100%}
+footer{text-align:center;color:#777;font-size:12px;padding:25px}
+
+.player-box {
+  background: #080808;
+  border: 1px solid #d40000;
+  border-radius: 12px;
+  padding: 12px;
+  margin: 20px 0;
+}
+.player-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.player-box h3 { margin: 4px 0; }
+#closePlayer { width: auto; }
+.player-frame {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 8px;
+  background: #000;
+}
+.player-box[hidden] { display: none; }
+@media(max-width:600px){main{padding:15px}header{padding:0 14px}h1{font-size:17px}.search{flex-direction:column}}
+
+.download-panel{background:#191919;border:1px solid #444;border-top:3px solid #d40000;border-radius:12px;padding:18px;margin:22px 0}
+.download-panel h2{font-size:21px;margin-top:0}
+.download-panel input,.download-panel select{width:100%;padding:12px;border-radius:8px;border:1px solid #444;background:#202020;color:white}
+.download-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.download-field{display:flex;flex-direction:column;gap:7px}
+.download-field label{font-size:13px;color:#ccc}
+.download-wide{grid-column:1/-1}
+.download-folder{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#downloadFolderName{color:#bbb;font-size:13px;overflow-wrap:anywhere}
+#downloadProgressTrack{height:12px;background:#333;border-radius:20px;overflow:hidden;margin:14px 0}
+#downloadProgressBar{height:100%;width:0;background:#e00000;transition:width .2s}
+
+#downloadStatus{color:#ffaaaa;min-height:24px;overflow-wrap:anywhere}
+.queue-area{margin-top:18px;border-top:1px solid #444;padding-top:12px}
+.queue-area h3{margin-bottom:6px}
+.queue-help,.queue-empty{color:#aaa;font-size:13px}
+.queue-item{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#222;border:1px solid #393939;border-left:3px solid #d40000;border-radius:8px;padding:10px;margin:8px 0}
+.queue-item-info{min-width:0;overflow-wrap:anywhere}
+.queue-item-title{font-weight:bold;color:#fff}
+.queue-item-detail{font-size:12px;color:#bbb;margin-top:4px}
+.queue-item button{flex-shrink:0;padding:7px 10px}
+.queue-state{color:#ffaaaa;font-size:12px;margin-top:4px}
+.queue-progress{display:flex;align-items:center;gap:9px;margin-top:8px}
+.queue-progress-track{height:8px;flex:1;min-width:80px;background:#444;border-radius:8px;overflow:hidden}
+.queue-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#b00000,#ff3030);border-radius:8px;transition:width .25s}
+.queue-progress-label{font-size:12px;color:#ffaaaa;min-width:45px;text-align:right}
+
+.download-panel button:disabled{opacity:.6;cursor:wait}
+@media(max-width:600px){.download-grid{grid-template-columns:1fr}.download-wide{grid-column:auto}}
+
+</style>
+</head>
+<body>
+<header><div class="logo">JC</div><h1>JC-SATube <span>RUBRO-NEGRO</span></h1></header>
+<main>
+<h2>Seu espaço de vídeos</h2>
+<p>Pesquise vídeos públicos do YouTube com a identidade rubro-negra.</p>
+<form class="search" id="searchForm">
+<input id="query" placeholder="Ex.: Flamengo melhores momentos" autocomplete="off" required>
+<button id="searchButton" type="submit">PESQUISAR</button>
+</form>
+<div id="status">Digite o que deseja encontrar.</div>
+
+<section class="download-panel" id="downloadPanel">
+  <h2>⬇ Downloads — JC-SATube</h2>
+  <p>Cole um link do YouTube, escolha vídeo ou áudio e selecione onde salvar.</p>
+  <div class="download-grid">
+    <div class="download-field download-wide">
+      <label for="downloadUrl">URL do YouTube</label>
+      <input id="downloadUrl" type="url" placeholder="Cole aqui o link do vídeo" autocomplete="off">
+    </div>
+    <div class="download-field">
+      <label for="downloadType">Tipo de arquivo</label>
+      <select id="downloadType">
+        <option value="video">Vídeo MP4</option>
+        <option value="audio">Áudio MP3</option>
+      </select>
+    </div>
+    <div class="download-field" id="videoQualityField">
+      <label for="downloadQuality">Qualidade do vídeo</label>
+      <select id="downloadQuality">
+        <option value="best">Melhor disponível</option>
+        <option value="1080">Até 1080p</option>
+        <option value="720">Até 720p</option>
+        <option value="480">Até 480p</option>
+      </select>
+    </div>
+    <div class="download-field download-wide">
+      <label>Pasta de destino</label>
+      <div class="download-folder">
+        <button type="button" id="chooseDownloadFolder">ESCOLHER PASTA</button>
+        <button type="button" id="openDownloadFolder" class="secondary">📂 ABRIR PASTA DE DESTINO</button>
+        <span id="downloadFolderName">Selecione uma pasta</span>
+      </div>
+    </div>
+    <div class="download-wide">
+      <button type="button" id="startDownload">➕ ADICIONAR À FILA</button>
+    </div>
+  </div>
+
+  <div class="download-wide queue-area">
+    <h3>📋 Fila de downloads <span id="queueCount">(0)</span></h3>
+    <p class="queue-help">Os itens são baixados automaticamente, um de cada vez.</p>
+    <div id="downloadQueue" aria-live="polite">
+      <p class="queue-empty">Sua fila está vazia.</p>
+    </div>
+    <button type="button" id="clearFinishedQueue" class="secondary">LIMPAR CONCLUÍDOS E ERROS</button>
+  </div>
+
+  <div id="downloadProgressTrack" role="progressbar" aria-label="Progresso do download" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <div id="downloadProgressBar"></div>
+  </div>
+  <div id="downloadStatus" aria-live="polite">Pronto para baixar. Escolha a pasta de destino.</div>
+</section>
+
+<section id="playerBox" class="player-box" hidden>
+  <div class="player-heading">
+    <h3 id="playerTitle">▶ Reproduzindo vídeo</h3>
+    <button type="button" id="closePlayer" class="secondary">FECHAR PLAYER ✕</button>
+  </div>
+  <iframe id="playerFrame" class="player-frame"
+    title="Player do YouTube"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; volume"
+    referrerpolicy="strict-origin-when-cross-origin"
+    allowfullscreen></iframe>
+</section>
+<section class="favorites-panel" id="favoritesPanel">
+  <h2>⭐ Meus favoritos <span id="favoritesCount">(0)</span></h2>
+  <div class="favorites-filter">
+    <label for="favoritesFilter">Filtrar categoria:</label>
+    <select id="favoritesFilter">
+      <option value="Todas">Todas as categorias</option>
+      <option value="Flamengo">🔴⚫ Flamengo</option>
+      <option value="Música">🎵 Música</option>
+      <option value="Filmes">🎬 Filmes</option>
+      <option value="Outros">📁 Outros</option>
+      <option value="Sem categoria">Sem categoria</option>
+    </select>
+  </div>
+  <div id="favoritesList" class="favorites-grid">
+    <p class="favorite-empty">Você ainda não salvou nenhum vídeo.</p>
+  </div>
+</section>
+<section id="results"></section>
+</main>
+<footer>JC-SATube Rubro-Negro • Projeto independente</footer>
+<script>
+const form=document.getElementById('searchForm');
+const query=document.getElementById('query');
+const status=document.getElementById('status');
+const results=document.getElementById('results');
+const button=document.getElementById('searchButton');
+
+const favoritesList = document.getElementById('favoritesList');
+const favoritesCount = document.getElementById('favoritesCount');
+const favoritesFilter = document.getElementById('favoritesFilter');
+let favorites = [];
+favoritesFilter.addEventListener('change', renderFavorites);
+
+try {
+  const savedFavorites = JSON.parse(
+    localStorage.getItem('jc-sattube-favorites-v1') || '[]'
+  );
+  if (Array.isArray(savedFavorites)) favorites = savedFavorites.map(v => ({
+    ...v,
+    category: v.category || 'Sem categoria'
+  }));
+} catch (e) {
+  favorites = [];
+}
+
+function salvarFavoritos() {
+  try {
+    localStorage.setItem('jc-sattube-favorites-v1', JSON.stringify(favorites));
+    return true;
+  } catch (e) {
+    status.textContent = 'Não foi possível salvar os favoritos no computador.';
+    return false;
+  }
+}
+
+function abrirVideo(v) {
+  const box = document.getElementById('playerBox');
+  const frame = document.getElementById('playerFrame');
+  document.getElementById('playerTitle').textContent = '▶ ' + v.title;
+  dlVideoTitle = v.title;
+  dlVideoUrl = v.url;
+  frame.src = 'https://www.youtube.com/embed/' +
+    encodeURIComponent(v.id) + '?autoplay=1&controls=1&playsinline=1&rel=0';
+
+  const campoDownload = document.getElementById('downloadUrl');
+  if (campoDownload) {
+    campoDownload.value = v.url;
+    document.getElementById('downloadStatus').textContent =
+      'Vídeo selecionado para download. Escolha MP4 ou MP3 e adicione à fila.';
+  }
+
+  box.hidden = false;
+  box.scrollIntoView({behavior:'smooth', block:'start'});
+  status.textContent = 'Abrindo o vídeo dentro do JC-SATube...';
+}
+
+function renderFavorites() {
+  favoritesList.replaceChildren();
+  favoritesCount.textContent = '(' + favorites.length + ')';
+
+  if (!favorites.length) {
+    const empty = document.createElement('p');
+    empty.className = 'favorite-empty';
+    empty.textContent = 'Você ainda não salvou nenhum vídeo.';
+    favoritesList.appendChild(empty);
+  }
+
+  for (const v of favorites) {
+    if (favoritesFilter.value !== 'Todas' &&
+        (v.category || 'Sem categoria') !== favoritesFilter.value) continue;
+    const card = document.createElement('article');
+    card.className = 'video';
+
+    const img = document.createElement('img');
+    img.className = 'thumb';
+    img.src = v.thumbnail || '';
+    img.alt = 'Miniatura do vídeo favorito';
+    img.loading = 'lazy';
+
+    const details = document.createElement('div');
+    details.className = 'details';
+
+    const title = document.createElement('h3');
+    title.textContent = v.title || 'Vídeo sem título';
+
+    const channel = document.createElement('div');
+    channel.className = 'channel';
+    channel.textContent = v.channel || 'YouTube';
+
+    const categorySelect = document.createElement('select');
+    categorySelect.className = 'favorite-category';
+    categorySelect.setAttribute('aria-label', 'Categoria do favorito');
+    for (const nome of ['Sem categoria', 'Flamengo', 'Música', 'Filmes', 'Outros']) {
+      const option = document.createElement('option');
+      option.value = nome;
+      option.textContent = nome;
+      categorySelect.appendChild(option);
+    }
+    categorySelect.value = v.category || 'Sem categoria';
+    categorySelect.addEventListener('change', () => {
+      const favorito = favorites.find(item => item.url === v.url);
+      if (!favorito) return;
+      favorito.category = categorySelect.value;
+      if (salvarFavoritos()) {
+        renderFavorites();
+        atualizarBotoesFavoritos();
+        status.textContent = 'Categoria do favorito atualizada.';
+      }
+    });
+
+    const play = document.createElement('button');
+    play.className = 'play';
+    play.textContent = '▶ ABRIR VÍDEO';
+    play.addEventListener('click', () => abrirVideo(v));
+
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'favorite-button';
+    remove.textContent = '🗑 REMOVER DOS FAVORITOS';
+    remove.addEventListener('click', () => {
+      favorites = favorites.filter(item => item.url !== v.url);
+      if (salvarFavoritos()) {
+        renderFavorites();
+        atualizarBotoesFavoritos();
+        status.textContent = 'Vídeo removido dos favoritos.';
+      }
+    });
+
+    details.append(title, channel, categorySelect, play, remove);
+    card.append(img, details);
+    favoritesList.appendChild(card);
+  }
+}
+
+function atualizarBotoesFavoritos() {
+  document.querySelectorAll('.favorite-button[data-video-url]').forEach(btn => {
+    const salvo = favorites.some(v => v.url === btn.dataset.videoUrl);
+    btn.textContent = salvo ? '⭐ FAVORITADO — REMOVER' : '☆ FAVORITAR';
+    btn.classList.toggle('saved', salvo);
+  });
+}
+
+function alternarFavorito(v) {
+  const existe = favorites.some(item => item.url === v.url);
+
+  if (existe) {
+    favorites = favorites.filter(item => item.url !== v.url);
+  } else {
+    favorites.push({
+      id: v.id,
+      title: v.title,
+      channel: v.channel,
+      thumbnail: v.thumbnail,
+      url: v.url,
+      category: 'Sem categoria'
+    });
+  }
+
+  if (salvarFavoritos()) {
+    renderFavorites();
+    atualizarBotoesFavoritos();
+    status.textContent = existe
+      ? 'Vídeo removido dos favoritos.'
+      : '⭐ Vídeo salvo nos favoritos!';
+  }
+}
+
+document.getElementById('closePlayer').addEventListener('click', () => {
+  const frame = document.getElementById('playerFrame');
+  frame.src = 'about:blank';
+  document.getElementById('playerBox').hidden = true;
+  status.textContent = 'Player fechado.';
+});
+
+form.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const termo=query.value.trim();
+  if(!termo)return;
+  button.disabled=true;
+  button.textContent='PESQUISANDO...';
+  status.textContent='Buscando vídeos...';
+  results.replaceChildren();
+  try{
+    const videos=await window.jcSatube.pesquisar(termo);
+    if(!videos.length){status.textContent='Nenhum vídeo encontrado. Tente outra pesquisa.';return;}
+    status.textContent=`Encontrados ${videos.length} vídeos.`;
+    for(const v of videos){
+      const card=document.createElement('article');
+      card.className='video';
+      const img=document.createElement('img');
+      img.className='thumb';img.src=v.thumbnail;img.alt='Miniatura do vídeo';img.loading='lazy';
+      const details=document.createElement('div');details.className='details';
+      const title=document.createElement('h3');title.textContent=v.title;
+      const channel=document.createElement('div');channel.className='channel';channel.textContent=v.channel;
+      const play=document.createElement('button');play.className='play';play.textContent='▶ ABRIR VÍDEO';
+      play.addEventListener('click', () => abrirVideo(v));
+
+      const favoriteButton = document.createElement('button');
+      favoriteButton.type = 'button';
+      favoriteButton.className = 'favorite-button';
+      favoriteButton.dataset.videoUrl = v.url;
+      favoriteButton.addEventListener('click', () => alternarFavorito(v));
+
+      details.append(title, channel, play, favoriteButton);
+      card.append(img, details);
+      results.append(card);
+      atualizarBotoesFavoritos();
+    }
+  }catch(err){status.textContent=err.message||'Erro ao pesquisar. Tente novamente.';}
+  finally{button.disabled=false;button.textContent='PESQUISAR';}
+});
+
+const dlUrl = document.getElementById('downloadUrl');
+const dlType = document.getElementById('downloadType');
+const dlQuality = document.getElementById('downloadQuality');
+const dlQualityField = document.getElementById('videoQualityField');
+const dlFolderName = document.getElementById('downloadFolderName');
+const dlStatus = document.getElementById('downloadStatus');
+const dlBar = document.getElementById('downloadProgressBar');
+const dlTrack = document.getElementById('downloadProgressTrack');
+const dlButton = document.getElementById('startDownload');
+let dlFolder = null;
+let dlVideoTitle = '';
+let dlVideoUrl = '';
+let dlBusy = false;
+
+dlType.addEventListener('change', () => {
+  dlQualityField.hidden = dlType.value === 'audio';
+});
+
+
+document.getElementById('openDownloadFolder').addEventListener('click', async () => {
+  if (!dlFolder) {
+    dlStatus.textContent = 'Escolha primeiro a pasta de destino.';
+    return;
+  }
+  try {
+    await window.jcSatube.abrirPastaDestino(dlFolder);
+    dlStatus.textContent = 'Pasta de destino aberta.';
+  } catch (e) {
+    dlStatus.textContent = e.message || 'Não foi possível abrir a pasta.';
+  }
+});
+
+document.getElementById('chooseDownloadFolder').addEventListener('click', async () => {
+  try {
+    const folder = await window.jcSatube.escolherPasta();
+    if (folder) {
+      dlFolder = folder;
+      dlFolderName.textContent = folder;
+      dlStatus.textContent = 'Pasta selecionada.';
+    }
+  } catch (e) {
+    dlStatus.textContent = e.message || 'Erro ao escolher a pasta.';
+  }
+});
+
+
+const queueElement = document.getElementById('downloadQueue');
+const queueCount = document.getElementById('queueCount');
+const clearFinishedButton = document.getElementById('clearFinishedQueue');
+
+let downloadQueue = [];
+let queueNextId = 1;
+let queueRunning = false;
+let currentQueueItem = null;
+
+function renderDownloadQueue() {
+  queueElement.replaceChildren();
+  queueCount.textContent = '(' + downloadQueue.length + ')';
+
+  if (!downloadQueue.length) {
+    const empty = document.createElement('p');
+    empty.className = 'queue-empty';
+    empty.textContent = 'Sua fila está vazia.';
+    queueElement.appendChild(empty);
+    return;
+  }
+
+  for (const item of downloadQueue) {
+    const row = document.createElement('div');
+    row.className = 'queue-item';
+
+    const info = document.createElement('div');
+    info.className = 'queue-item-info';
+
+    const title = document.createElement('div');
+    title.className = 'queue-item-title';
+    title.textContent = item.titulo || item.url;
+
+    const detail = document.createElement('div');
+    detail.className = 'queue-item-detail';
+    detail.textContent =
+      (item.tipo === 'audio' ? 'Áudio MP3' : 'Vídeo MP4') +
+      ' • ' + (item.tipo === 'audio' ? 'Melhor qualidade' : item.qualidade) +
+      ' • ' + item.pasta;
+
+    const state = document.createElement('div');
+    state.className = 'queue-state';
+    if (item.status === 'Concluído') {
+      state.textContent = '✅ ' + item.status;
+      state.style.color = '#55dd88';
+    } else if (item.status.startsWith('Erro') ||
+               item.status.toLowerCase().includes('falh')) {
+      state.textContent = '❌ ' + item.status;
+      state.style.color = '#ff5555';
+    } else if (item.status === 'Baixando') {
+      state.textContent = '⏳ ' + item.status;
+      state.style.color = '#ffcc55';
+    } else {
+      state.textContent = '🕒 ' + item.status;
+      state.style.color = '#cccccc';
+    }
+
+    info.append(title, detail, state);
+
+    const progresso = document.createElement('div');
+    progresso.className = 'queue-progress';
+
+    const trilho = document.createElement('div');
+    trilho.className = 'queue-progress-track';
+
+    const barra = document.createElement('div');
+    barra.className = 'queue-progress-fill';
+
+    const percentual = item.status === 'Concluído'
+      ? 100
+      : Math.max(0, Math.min(100, Number(item.percentual) || 0));
+
+    barra.style.width = percentual + '%';
+    trilho.appendChild(barra);
+
+    const legenda = document.createElement('span');
+    legenda.className = 'queue-progress-label';
+    legenda.textContent = item.status === 'Na fila'
+      ? 'Aguardando'
+      : Math.round(percentual) + '%';
+
+    progresso.append(trilho, legenda);
+    info.appendChild(progresso);
+    row.appendChild(info);
+
+    if (item.status === 'Na fila') {
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'secondary';
+      remove.textContent = 'REMOVER';
+      remove.addEventListener('click', () => {
+        if (item.status !== 'Na fila') return;
+        downloadQueue = downloadQueue.filter(entry => entry.id !== item.id);
+        renderDownloadQueue();
+      });
+      row.appendChild(remove);
+    }
+
+    queueElement.appendChild(row);
+  }
+}
+
+function startNextQueuedDownload() {
+  if (queueRunning) return;
+
+  const item = downloadQueue.find(entry => entry.status === 'Na fila');
+  if (!item) {
+    dlBusy = false;
+    dlButton.disabled = false;
+    dlButton.textContent = '➕ ADICIONAR À FILA';
+    currentQueueItem = null;
+    return;
+  }
+
+  queueRunning = true;
+  dlBusy = true;
+  currentQueueItem = item;
+  item.percentual = Number(item.percentual) || 0;
+  item.status = 'Baixando';
+  renderDownloadQueue();
+
+  dlBar.style.width = '0%';
+  dlTrack.setAttribute('aria-valuenow', '0');
+  dlStatus.textContent = 'Baixando item da fila...';
+  dlButton.disabled = false;
+  dlButton.textContent = '➕ ADICIONAR À FILA';
+
+  window.jcSatube.baixar({
+    url: item.url,
+    pasta: item.pasta,
+    tipo: item.tipo,
+    qualidade: item.qualidade
+  }).catch(error => {
+    if (currentQueueItem && currentQueueItem.id === item.id) {
+      item.status = 'Erro: ' + (error.message || 'não foi possível iniciar');
+      queueRunning = false;
+      currentQueueItem = null;
+      dlBusy = false;
+      renderDownloadQueue();
+      dlStatus.textContent = item.status;
+      startNextQueuedDownload();
+    }
+  });
+}
+
+dlButton.addEventListener('click', () => {
+  const url = dlUrl.value.trim();
+
+  if (!url) {
+    dlStatus.textContent = 'Cole primeiro o link do YouTube.';
+    dlUrl.focus();
+    return;
+  }
+  if (!dlFolder) {
+    dlStatus.textContent = 'Escolha primeiro a pasta de destino.';
+    return;
+  }
+
+  downloadQueue.push({
+    id: queueNextId++,
+    url,
+    titulo: (url === dlVideoUrl && dlVideoTitle) ? dlVideoTitle : url,
+    tipo: dlType.value,
+    qualidade: dlQuality.value,
+    pasta: dlFolder,
+    status: 'Na fila'
+  });
+
+  renderDownloadQueue();
+  dlStatus.textContent = 'Item adicionado à fila.';
+  startNextQueuedDownload();
+});
+
+clearFinishedButton.addEventListener('click', () => {
+  downloadQueue = downloadQueue.filter(item =>
+    item.status === 'Na fila' || item.status === 'Baixando'
+  );
+  renderDownloadQueue();
+});
+
+window.jcSatube.progressoDownload(d => {
+  if (typeof d.percentual === 'number') {
+    if (currentQueueItem) {
+      currentQueueItem.percentual = Math.max(
+        0, Math.min(100, d.percentual)
+      );
+      renderDownloadQueue();
+    }
+
+    dlBar.style.width = d.percentual + '%';
+    dlTrack.setAttribute('aria-valuenow', String(Math.round(d.percentual)));
+  }
+
+  let msg = d.mensagem || 'Download em andamento...';
+  if (d.velocidade) msg += ' • ' + d.velocidade;
+  if (d.eta) msg += ' • restante: ' + d.eta;
+  dlStatus.textContent = msg;
+
+  if (d.ativo === false) {
+    if (currentQueueItem) {
+      currentQueueItem.status = d.concluido
+        ? 'Concluído'
+        : (d.mensagem || 'Erro no download');
+    }
+
+    if (d.concluido) {
+      dlBar.style.width = '100%';
+    }
+
+    queueRunning = false;
+    currentQueueItem = null;
+    dlBusy = false;
+    renderDownloadQueue();
+
+    // Aguarda o processo atual terminar antes de iniciar o próximo.
+    startNextQueuedDownload();
+  }
+});
+
+renderFavorites();
+renderDownloadQueue();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+{
+  "name": "jc-sattube",
+  "version": "1.0.0",
+  "description": "Pesquisa, reprodução e downloads de vídeos do YouTube",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "dist": "electron-builder --linux deb",
+    "dist-win": "electron-builder --win nsis"
+  },
+  "keywords": [],
+  "author": {
+    "name": "JC-SATube",
+    "email": "jc@localhost"
+  },
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3"
+  },
+  "productName": "JC-SATube Rubro-Negro",
+  "build": {
+    "appId": "br.com.jcsat.sattube",
+    "productName": "JC-SATube Rubro-Negro",
+    "linux": {
+      "target": [
+        "deb"
+      ],
+      "category": "AudioVideo",
+      "synopsis": "Pesquisa, reprodução e downloads de vídeos",
+      "maintainer": "JC-SATube <jc@localhost>"
+    },
+    "files": [
+      "!bin/windows/**"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "JC-SATube-Setup-${version}.${ext}",
+      "extraResources": [
+        {
+          "from": "bin/windows/yt-dlp.exe",
+          "to": "bin/yt-dlp.exe"
+        },
+        {
+          "from": "bin/windows/ffmpeg.exe",
+          "to": "bin/ffmpeg.exe"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "JC-SATube Rubro-Negro"
+    }
+  },
+  "homepage": "https://example.com/jc-sattube"
+}
