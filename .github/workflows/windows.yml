@@ -51,7 +51,7 @@ jobs:
         run: npm ci
 
       - name: Gerar instalador Windows
-        run: npx electron-builder --win nsis --x64
+        run: npx electron-builder --win nsis --x64 --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
 
